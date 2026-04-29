@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QuickBite – Food Delivery</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #FF6B35;
+  --orange-dark: #E5521B;
+  --orange-light: #FFF0EB;
+  --green: #2EC27E;
+  --text: #1A1A1A;
+  --text-muted: #6B7280;
+  --bg: #F9F6F2;
+  --white: #FFFFFF;
+  --border: #E5E0D8;
+  --card-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  --radius: 14px;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── NAV ── */
+nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; color: var(--orange); letter-spacing: -0.5px; }
+.logo span { color: var(--text); }
+.nav-right { display: flex; align-items: center; gap: 1rem; }
+.cart-btn {
+  background: var(--orange); color: #fff; border: none; border-radius: 10px;
+  padding: 0.5rem 1rem; font-family: var(--font-body); font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; font-size: 0.9rem; transition: background .2s;
+}
+.cart-btn:hover { background: var(--orange-dark); }
+#cart-count { background: var(--white); color: var(--orange); border-radius: 50%; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+.auth-btn { background: none; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 0.5rem 1.2rem; font-family: var(--font-body); cursor: pointer; font-weight: 500;
+  color: var(--text); transition: all .2s; font-size: 0.9rem; }
+.auth-btn:hover { border-color: var(--orange); color: var(--orange); }
+#user-greeting { font-size: 0.9rem; color: var(--text-muted); }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+  color: #fff; padding: 5rem 2rem 4rem; text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 60% 40%, rgba(255,107,53,0.15) 0%, transparent 50%);
+}
+.hero h1 { font-family: var(--font-head); font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700;
+  line-height: 1.1; margin-bottom: 1rem; position: relative; }
+.hero h1 span { color: var(--orange); }
+.hero p { color: rgba(255,255,255,0.7); font-size: 1.1rem; margin-bottom: 2rem; position: relative; }
+.search-bar {
+  display: flex; max-width: 520px; margin: 0 auto; background: var(--white);
+  border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2); position: relative;
+}
+.search-bar input {
+  flex: 1; border: none; outline: none; padding: 1rem 1.2rem;
+  font-family: var(--font-body); font-size: 1rem; color: var(--text);
+}
+.search-bar button {
+  background: var(--orange); color: #fff; border: none; padding: 1rem 1.5rem;
+  cursor: pointer; font-weight: 600; font-family: var(--font-body); transition: background .2s;
+}
+.search-bar button:hover { background: var(--orange-dark); }
+
+/* ── CUISINE FILTERS ── */
+.filters { padding: 1.5rem 2rem 0; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.filter-chip {
+  background: var(--white); border: 1.5px solid var(--border); border-radius: 30px;
+  padding: 0.4rem 1rem; font-size: 0.85rem; cursor: pointer; transition: all .2s;
+  font-family: var(--font-body); font-weight: 500;
+}
+.filter-chip:hover, .filter-chip.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+/* ── RESTAURANT GRID ── */
+.section-title { font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; padding: 1.5rem 2rem 0.5rem; }
+.restaurants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.2rem; padding: 0.5rem 2rem 2rem; }
+.restaurant-card {
+  background: var(--white); border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--card-shadow); cursor: pointer; transition: transform .2s, box-shadow .2s;
+  border: 1px solid var(--border);
+}
+.restaurant-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }
+.card-img {
+  height: 160px; display: flex; align-items: center; justify-content: center;
+  font-size: 4rem; position: relative;
+}
+.card-img.indian { background: linear-gradient(135deg, #FFF0EB, #FFD6C2); }
+.card-img.chinese { background: linear-gradient(135deg, #FFF9E6, #FFE9A0); }
+.card-img.italian { background: linear-gradient(135deg, #E8F4F0, #B5E0D0); }
+.card-img.fastfood { background: linear-gradient(135deg, #EBF3FF, #BDD6F5); }
+.card-img.southindian { background: linear-gradient(135deg, #F0EBFF, #CDB5F5); }
+.card-badge {
+  position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6);
+  color: #fff; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500;
+}
+.card-body { padding: 1rem; }
+.card-body h3 { font-family: var(--font-head); font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem; }
+.card-meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+.rating { color: #F59E0B; font-weight: 600; }
+.card-footer { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 0.7rem; margin-top: 0.5rem; }
+
+/* ── RESTAURANT PAGE (Menu) ── */
+.restaurant-header {
+  background: var(--white); padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1rem;
+}
+.back-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); transition: all .2s; }
+.back-btn:hover { color: var(--orange); border-color: var(--orange); }
+.rest-info h2 { font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; }
+.rest-info p { color: var(--text-muted); font-size: 0.9rem; }
+.rest-meta { display: flex; gap: 1.5rem; margin-top: 0.4rem; font-size: 0.85rem; }
+.rest-meta span { color: var(--text-muted); }
+.rest-meta strong { color: var(--text); }
+
+.menu-layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; padding: 1.5rem 2rem; max-width: 1100px; }
+.menu-sections {}
+.menu-category { margin-bottom: 2rem; }
+.menu-category h3 { font-family: var(--font-head); font-size: 1rem; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+.menu-item {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--white); border-radius: 10px; padding: 1rem; margin-bottom: 0.6rem;
+  border: 1px solid var(--border); transition: box-shadow .2s;
+}
+.menu-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.item-info { flex: 1; padding-right: 1rem; }
+.item-info h4 { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+.item-info p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
+.item-price { font-family: var(--font-head); font-weight: 700; font-size: 1rem; color: var(--orange); margin-bottom: 0.5rem; text-align: right; }
+.add-btn {
+  background: var(--orange-light); color: var(--orange); border: 1.5px solid var(--orange);
+  border-radius: 8px; padding: 0.35rem 0.8rem; cursor: pointer; font-weight: 600;
+  font-family: var(--font-body); font-size: 0.85rem; transition: all .2s; white-space: nowrap;
+}
+.add-btn:hover { background: var(--orange); color: #fff; }
+.qty-control { display: flex; align-items: center; gap: 6px; }
+.qty-btn { background: var(--orange); color: #fff; border: none; width: 26px; height: 26px;
+  border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 700; }
+.qty-num { font-weight: 700; min-width: 20px; text-align: center; font-size: 0.95rem; }
+
+/* ── CART SIDEBAR ── */
+.cart-sidebar {
+  background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 1.2rem; position: sticky; top: 80px; max-height: calc(100vh - 100px);
+  overflow-y: auto; height: fit-content;
+}
+.cart-sidebar h3 { font-family: var(--font-head); font-weight: 700; margin-bottom: 1rem; font-size: 1.1rem; }
+.cart-empty { text-align: center; color: var(--text-muted); padding: 2rem 0; font-size: 0.9rem; }
+.cart-item { display: flex; justify-content: space-between; align-items: center;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.cart-item-name { flex: 1; font-weight: 500; }
+.cart-item-detail { color: var(--text-muted); font-size: 0.8rem; }
+.cart-total { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700;
+  display: flex; justify-content: space-between; padding-top: 0.8rem; margin-top: 0.5rem; }
+.checkout-btn { width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 10px;
+  padding: 0.8rem; font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+  cursor: pointer; margin-top: 1rem; transition: background .2s; }
+.checkout-btn:hover { background: var(--orange-dark); }
+.checkout-btn:disabled { background: #ccc; cursor: not-allowed; }
+.delivery-note { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: 0.6rem; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: var(--white); border-radius: 18px; padding: 2rem; width: 100%;
+  max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal h2 { font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+.modal p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-weight: 500; font-size: 0.88rem; margin-bottom: 0.4rem; color: var(--text-muted); }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 0.7rem 1rem;
+  font-family: var(--font-body); font-size: 0.95rem; color: var(--text); outline: none;
+  transition: border .2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--orange); }
+.modal-btn {
+  width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 10px;
+  padding: 0.85rem; font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+  cursor: pointer; margin-top: 0.5rem; transition: background .2s;
+}
+.modal-btn:hover { background: var(--orange-dark); }
+.modal-toggle { text-align: center; margin-top: 1rem; font-size: 0.88rem; color: var(--text-muted); }
+.modal-toggle a { color: var(--orange); cursor: pointer; font-weight: 600; text-decoration: none; }
+.close-modal { float: right; background: none; border: none; font-size: 1.5rem;
+  cursor: pointer; color: var(--text-muted); line-height: 1; }
+.msg { padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1rem; }
+.msg.error { background: #FFF0F0; color: #C0392B; border: 1px solid #F5B7B1; }
+.msg.success { background: #F0FFF5; color: #1E8449; border: 1px solid #A9DFBF; }
+
+/* ── CHECKOUT MODAL ── */
+.order-summary { background: var(--bg); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+.order-summary-item { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 0.3rem 0; }
+.order-summary-total { display: flex; justify-content: space-between; font-weight: 700;
+  border-top: 1px solid var(--border); padding-top: 0.6rem; margin-top: 0.4rem; }
+
+/* ── ORDERS PAGE ── */
+.orders-container { padding: 2rem; max-width: 700px; margin: 0 auto; }
+.orders-container h2 { font-family: var(--font-head); font-size: 1.6rem; font-weight: 700; margin-bottom: 1.5rem; }
+.order-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 1.2rem; margin-bottom: 1rem; }
+.order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+.order-header h4 { font-family: var(--font-head); font-weight: 700; }
+.status-badge { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+.status-pending { background: #FFF3E0; color: #E65100; }
+.status-confirmed { background: #E8F5E9; color: #2E7D32; }
+.status-preparing { background: #E3F2FD; color: #1565C0; }
+.status-out_for_delivery { background: #F3E5F5; color: #6A1B9A; }
+.status-delivered { background: #E8F5E9; color: #1B5E20; }
+.status-cancelled { background: #FFEBEE; color: #B71C1C; }
+.order-items-list { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+.order-footer { display: flex; justify-content: space-between; font-size: 0.88rem;
+  border-top: 1px solid var(--border); padding-top: 0.6rem; margin-top: 0.5rem; }
+
+/* ── SUCCESS ── */
+.success-screen { text-align: center; padding: 3rem 2rem; }
+.success-icon { font-size: 5rem; margin-bottom: 1rem; }
+.success-screen h2 { font-family: var(--font-head); font-size: 2rem; font-weight: 700; color: var(--green); margin-bottom: 0.5rem; }
+.success-screen p { color: var(--text-muted); margin-bottom: 2rem; }
+.primary-btn { background: var(--orange); color: #fff; border: none; border-radius: 12px;
+  padding: 0.85rem 2rem; font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: background .2s; }
+.primary-btn:hover { background: var(--orange-dark); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .menu-layout { grid-template-columns: 1fr; }
+  .cart-sidebar { position: static; }
+  .restaurants-grid { grid-template-columns: 1fr; }
+  nav { padding: 0 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Quick<span>Bite</span></div>
+  <div class="nav-right">
+    <span id="user-greeting"></span>
+    <button class="auth-btn" id="nav-login-btn" onclick="showModal('login')">Login</button>
+    <button class="auth-btn" id="nav-orders-btn" style="display:none" onclick="showPage('orders')">My Orders</button>
+    <button class="auth-btn" id="nav-logout-btn" style="display:none" onclick="logout()">Logout</button>
+    <button class="cart-btn" onclick="toggleCart()">
+      🛒 Cart <span id="cart-count">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- PAGE: HOME -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <h1>Hungry? We've got<br>you <span>covered.</span></h1>
+    <p>Order from the best restaurants near you</p>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search restaurants or cuisines..." oninput="filterRestaurants()"/>
+      <button onclick="filterRestaurants()">Search</button>
+    </div>
+  </div>
+  <div class="filters" id="cuisine-filters"></div>
+  <div class="section-title" id="results-title">All Restaurants</div>
+  <div class="restaurants-grid" id="restaurants-grid"></div>
+</div>
+
+<!-- PAGE: RESTAURANT / MENU -->
+<div id="page-restaurant" class="page">
+  <div class="restaurant-header">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="rest-info">
+      <h2 id="rest-name">-</h2>
+      <p id="rest-cuisine">-</p>
+      <div class="rest-meta">
+        <span>⭐ <strong id="rest-rating">-</strong></span>
+        <span>🕐 <strong id="rest-time">-</strong></span>
+        <span>💰 Min: ₹<strong id="rest-min">-</strong></span>
+      </div>
+    </div>
+  </div>
+  <div class="menu-layout">
+    <div class="menu-sections" id="menu-sections"></div>
+    <div class="cart-sidebar">
+      <h3>Your Cart</h3>
+      <div id="cart-content"><div class="cart-empty">Add items to your cart</div></div>
+      <div id="cart-total-section" style="display:none">
+        <div class="cart-total"><span>Total</span><span id="cart-total-amount">₹0</span></div>
+        <button class="checkout-btn" onclick="startCheckout()">Proceed to Checkout</button>
+        <p class="delivery-note">Free delivery on orders above ₹199</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: ORDERS -->
+<div id="page-orders" class="page">
+  <div class="orders-container">
+    <h2>My Orders</h2>
+    <div id="orders-list"></div>
+  </div>
+</div>
+
+<!-- PAGE: ORDER SUCCESS -->
+<div id="page-success" class="page">
+  <div class="success-screen">
+    <div class="success-icon">🎉</div>
+    <h2>Order Placed!</h2>
+    <p id="success-msg">Your food is being prepared. Estimated delivery: 30-45 min.</p>
+    <button class="primary-btn" onclick="showPage('home')">Order More Food</button>
+    &nbsp;
+    <button class="primary-btn" style="background:#333" onclick="showPage('orders')">View Orders</button>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- Login Modal -->
+<div class="modal-overlay hidden" id="login-modal">
+  <div class="modal">
+    <button class="close-modal" onclick="closeModal()">×</button>
+    <h2>Welcome back</h2>
+    <p>Sign in to your QuickBite account</p>
+    <div id="login-msg"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"/></div>
+    <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="Your password"/></div>
+    <button class="modal-btn" onclick="login()">Login</button>
+    <div class="modal-toggle">Don't have an account? <a onclick="showModal('register')">Register</a></div>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div class="modal-overlay hidden" id="register-modal">
+  <div class="modal">
+    <button class="close-modal" onclick="closeModal()">×</button>
+    <h2>Create account</h2>
+    <p>Join QuickBite and order your favourite food</p>
+    <div id="register-msg"></div>
+    <div class="form-group"><label>Full Name</label><input type="text" id="reg-name" placeholder="Rahul Kumar"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="you@example.com"/></div>
+    <div class="form-group"><label>Phone</label><input type="tel" id="reg-phone" placeholder="9876543210"/></div>
+    <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="Min 6 characters"/></div>
+    <div class="form-group"><label>Address</label><textarea id="reg-address" rows="2" placeholder="Flat / Street, City"></textarea></div>
+    <button class="modal-btn" onclick="register()">Create Account</button>
+    <div class="modal-toggle">Already have an account? <a onclick="showModal('login')">Login</a></div>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="modal-overlay hidden" id="checkout-modal">
+  <div class="modal">
+    <button class="close-modal" onclick="closeModal()">×</button>
+    <h2>Checkout</h2>
+    <p>Confirm your delivery details</p>
+    <div id="checkout-msg"></div>
+    <div class="order-summary" id="checkout-summary"></div>
+    <div class="form-group">
+      <label>Delivery Address</label>
+      <textarea id="checkout-address" rows="2" placeholder="Enter your full delivery address"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select id="checkout-payment">
+        <option value="cash">Cash on Delivery</option>
+        <option value="upi">UPI</option>
+        <option value="card">Credit / Debit Card</option>
+      </select>
+    </div>
+    <button class="modal-btn" onclick="placeOrder()">Place Order</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+const API = 'php/';  // adjust path if needed
+let state = {
+  user: JSON.parse(localStorage.getItem('qb_user') || 'null'),
+  cart: [],
+  currentRestaurant: null,
+  restaurants: [],
+  activeCuisine: ''
+};
+
+// Restaurant emoji map
+const EMOJIS = { 'Indian':'🍛', 'Chinese':'🥢', 'Italian':'🍕', 'Fast Food':'🍔', 'South Indian':'🫙' };
+const CUISINE_BG = { 'Indian':'indian', 'Chinese':'chinese', 'Italian':'italian', 'Fast Food':'fastfood', 'South Indian':'southindian' };
+
+// ── INIT ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateNavUI();
+  loadRestaurants();
+});
+
+// ── API CALL ───────────────────────────────────────────────────
+async function api(endpoint, params = {}, method = 'GET') {
+  try {
+    let url = API + endpoint;
+    let options = { method };
+    if (method === 'GET') {
+      if (Object.keys(params).length) url += '?' + new URLSearchParams(params);
+    } else {
+      options.body = JSON.stringify(params);
+      options.headers = { 'Content-Type': 'application/json' };
+    }
+    const res = await fetch(url, options);
+    return await res.json();
+  } catch (e) {
+    return { success: false, message: 'Network error. Please check server.' };
+  }
+}
+
+async function formApi(endpoint, formData) {
+  try {
+    const res = await fetch(API + endpoint, { method: 'POST', body: formData });
+    return await res.json();
+  } catch (e) {
+    return { success: false, message: 'Network error.' };
+  }
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'orders') loadOrders();
+  if (name === 'home') loadRestaurants();
+}
+
+// ── NAV UI ─────────────────────────────────────────────────────
+function updateNavUI() {
+  const u = state.user;
+  document.getElementById('nav-login-btn').style.display = u ? 'none' : '';
+  document.getElementById('nav-orders-btn').style.display = u ? '' : 'none';
+  document.getElementById('nav-logout-btn').style.display = u ? '' : 'none';
+  document.getElementById('user-greeting').textContent = u ? 'Hi, ' + u.name.split(' ')[0] + '!' : '';
+}
+
+// ── MODALS ─────────────────────────────────────────────────────
+function showModal(type) {
+  closeModal();
+  document.getElementById(type + '-modal').classList.remove('hidden');
+}
+function closeModal() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+}
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) closeModal();
+});
+
+// ── AUTH ───────────────────────────────────────────────────────
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-password').value;
+  const msgEl = document.getElementById('login-msg');
+  if (!email || !pw) { showMsg(msgEl, 'Please fill all fields.', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('action', 'login');
+  fd.append('email', email);
+  fd.append('password', pw);
+  const data = await formApi('auth.php', fd);
+
+  if (data.success) {
+    state.user = data.user;
+    localStorage.setItem('qb_user', JSON.stringify(data.user));
+    updateNavUI();
+    closeModal();
+  } else {
+    showMsg(msgEl, data.message, 'error');
+  }
+}
+
+async function register() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const pw    = document.getElementById('reg-password').value;
+  const addr  = document.getElementById('reg-address').value.trim();
+  const msgEl = document.getElementById('register-msg');
+
+  if (!name || !email || !pw) { showMsg(msgEl, 'Name, email, and password required.', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('action', 'register');
+  fd.append('name', name); fd.append('email', email); fd.append('phone', phone);
+  fd.append('password', pw); fd.append('address', addr);
+  const data = await formApi('auth.php', fd);
+
+  if (data.success) {
+    state.user = data.user;
+    localStorage.setItem('qb_user', JSON.stringify(data.user));
+    updateNavUI();
+    closeModal();
+  } else {
+    showMsg(msgEl, data.message, 'error');
+  }
+}
+
+async function logout() {
+  await formApi('auth.php', (() => { const f = new FormData(); f.append('action','logout'); return f; })());
+  state.user = null;
+  localStorage.removeItem('qb_user');
+  state.cart = [];
+  updateNavUI();
+  updateCartUI();
+  showPage('home');
+}
+
+// ── RESTAURANTS ────────────────────────────────────────────────
+async function loadRestaurants() {
+  const data = await api('restaurants.php', { action: 'list' });
+  if (data.success) {
+    state.restaurants = data.data;
+    renderRestaurants(state.restaurants);
+    loadCuisineFilters(state.restaurants);
+  }
+}
+
+function loadCuisineFilters(list) {
+  const cuisines = [...new Set(list.map(r => r.cuisine))];
+  const el = document.getElementById('cuisine-filters');
+  el.innerHTML = '<span class="filter-chip active" onclick="filterByCuisine(this, \'\')">All</span>' +
+    cuisines.map(c => `<span class="filter-chip" onclick="filterByCuisine(this,'${c}')">${c}</span>`).join('');
+}
+
+function filterByCuisine(el, cuisine) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  state.activeCuisine = cuisine;
+  filterRestaurants();
+}
+
+function filterRestaurants() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  let list = state.restaurants;
+  if (state.activeCuisine) list = list.filter(r => r.cuisine === state.activeCuisine);
+  if (q) list = list.filter(r => r.name.toLowerCase().includes(q) || r.cuisine.toLowerCase().includes(q));
+  const title = document.getElementById('results-title');
+  title.textContent = list.length + ' Restaurant' + (list.length !== 1 ? 's' : '') + (q ? ` for "${q}"` : '');
+  renderRestaurants(list);
+}
+
+function renderRestaurants(list) {
+  const grid = document.getElementById('restaurants-grid');
+  if (!list.length) { grid.innerHTML = '<p style="color:#888;padding:1rem">No restaurants found.</p>'; return; }
+  grid.innerHTML = list.map(r => {
+    const emoji = EMOJIS[r.cuisine] || '🍽️';
+    const bgClass = CUISINE_BG[r.cuisine] || 'indian';
+    return `
+    <div class="restaurant-card" onclick="openRestaurant(${r.id})">
+      <div class="card-img ${bgClass}">
+        <span style="font-size:4rem">${emoji}</span>
+        <span class="card-badge">${r.cuisine}</span>
+      </div>
+      <div class="card-body">
+        <h3>${r.name}</h3>
+        <div class="card-meta">
+          <span class="rating">⭐ ${r.rating}</span>
+          <span>·</span>
+          <span>${r.delivery_time}</span>
+        </div>
+        <div class="card-footer">
+          <span>Min order: ₹${r.min_order}</span>
+          <span style="color:var(--green);font-weight:600">Open</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── MENU ───────────────────────────────────────────────────────
+async function openRestaurant(id) {
+  const data = await api('restaurants.php', { action: 'get', id });
+  if (!data.success) return;
+  const r = data.data;
+  state.currentRestaurant = r;
+  state.cart = [];
+  updateCartUI();
+
+  document.getElementById('rest-name').textContent = r.name;
+  document.getElementById('rest-cuisine').textContent = r.cuisine + ' Cuisine';
+  document.getElementById('rest-rating').textContent = r.rating;
+  document.getElementById('rest-time').textContent = r.delivery_time;
+  document.getElementById('rest-min').textContent = r.min_order;
+
+  const sec = document.getElementById('menu-sections');
+  sec.innerHTML = '';
+  for (const [cat, items] of Object.entries(r.menu)) {
+    sec.innerHTML += `<div class="menu-category">
+      <h3>${cat}</h3>
+      ${items.map(item => `
+        <div class="menu-item" id="mi-${item.id}">
+          <div class="item-info">
+            <h4>${item.name}</h4>
+            <p>${item.description || ''}</p>
+          </div>
+          <div style="text-align:right;min-width:90px">
+            <div class="item-price">₹${item.price}</div>
+            <button class="add-btn" onclick="addToCart(${item.id},'${escHtml(item.name)}',${item.price})">+ Add</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  showPage('restaurant');
+}
+
+// ── CART ────────────────────────────────────────────────────────
+function addToCart(id, name, price) {
+  const existing = state.cart.find(i => i.id === id);
+  if (existing) {
+    existing.qty++;
+  } else {
+    state.cart.push({ id, name, price: parseFloat(price), qty: 1 });
+  }
+  updateCartUI();
+  flashAddBtn(id);
+}
+
+function changeQty(id, delta) {
+  const idx = state.cart.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  state.cart[idx].qty += delta;
+  if (state.cart[idx].qty <= 0) state.cart.splice(idx, 1);
+  updateCartUI();
+}
+
+function toggleCart() {
+  if (state.currentRestaurant) {
+    document.querySelector('.cart-sidebar').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function updateCartUI() {
+  const total = state.cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const count = state.cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cart-count').textContent = count;
+
+  const content = document.getElementById('cart-content');
+  const totalSec = document.getElementById('cart-total-section');
+
+  if (!state.cart.length) {
+    content.innerHTML = '<div class="cart-empty">Add items to your cart</div>';
+    totalSec.style.display = 'none';
+    return;
+  }
+
+  content.innerHTML = state.cart.map(i => `
+    <div class="cart-item">
+      <div>
+        <div class="cart-item-name">${i.name}</div>
+        <div class="cart-item-detail">₹${i.price} × ${i.qty}</div>
+      </div>
+      <div class="qty-control">
+        <button class="qty-btn" onclick="changeQty(${i.id},-1)">−</button>
+        <span class="qty-num">${i.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${i.id},1)">+</button>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('cart-total-amount').textContent = '₹' + total.toFixed(2);
+  totalSec.style.display = 'block';
+}
+
+function flashAddBtn(id) {
+  const btn = document.querySelector(`#mi-${id} .add-btn`);
+  if (btn) { btn.textContent = '✓ Added'; btn.style.background = 'var(--green)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--green)';
+    setTimeout(() => { btn.textContent = '+ Add'; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 1000); }
+}
+
+// ── CHECKOUT ────────────────────────────────────────────────────
+function startCheckout() {
+  if (!state.user) { showModal('login'); return; }
+  if (!state.cart.length) return;
+
+  const total = state.cart.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('checkout-summary').innerHTML =
+    state.cart.map(i => `<div class="order-summary-item"><span>${i.name} ×${i.qty}</span><span>₹${(i.price*i.qty).toFixed(2)}</span></div>`).join('') +
+    `<div class="order-summary-total"><span>Total</span><span>₹${total.toFixed(2)}</span></div>`;
+
+  document.getElementById('checkout-address').value = '';
+  showModal('checkout');
+}
+
+async function placeOrder() {
+  const addr = document.getElementById('checkout-address').value.trim();
+  const pay  = document.getElementById('checkout-payment').value;
+  const msgEl = document.getElementById('checkout-msg');
+  if (!addr) { showMsg(msgEl, 'Please enter a delivery address.', 'error'); return; }
+
+  const payload = {
+    action: 'place',
+    restaurant_id: state.currentRestaurant.id,
+    delivery_address: addr,
+    payment_method: pay,
+    items: state.cart.map(i => ({ id: i.id, qty: i.qty }))
+  };
+
+  const data = await api('orders.php', payload, 'POST');
+
+  if (data.success) {
+    state.cart = [];
+    updateCartUI();
+    closeModal();
+    document.getElementById('success-msg').textContent = `Order #${data.order_id} placed! Total: ₹${data.total}. Estimated delivery: 30-45 min.`;
+    showPage('success');
+  } else {
+    showMsg(msgEl, data.message || 'Order failed. Try again.', 'error');
+  }
+}
+
+// ── ORDERS PAGE ────────────────────────────────────────────────
+async function loadOrders() {
+  if (!state.user) { showModal('login'); return; }
+  const data = await api('orders.php', { action: 'list' });
+  const el = document.getElementById('orders-list');
+  if (!data.success || !data.data.length) {
+    el.innerHTML = '<p style="color:#888">No orders yet. Start ordering!</p>'; return;
+  }
+  el.innerHTML = data.data.map(o => `
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <h4>${o.restaurant_name}</h4>
+          <div style="font-size:0.8rem;color:#888">${new Date(o.created_at).toLocaleString()}</div>
+        </div>
+        <span class="status-badge status-${o.status}">${o.status.replace('_',' ')}</span>
+      </div>
+      <div class="order-items-list">${o.items.map(i => `${i.name} ×${i.quantity}`).join(', ')}</div>
+      <div class="order-footer">
+        <span>Payment: ${o.payment_method.toUpperCase()}</span>
+        <strong>₹${parseFloat(o.total_amount).toFixed(2)}</strong>
+      </div>
+    </div>`).join('');
+}
+
+// ── HELPERS ────────────────────────────────────────────────────
+function showMsg(el, msg, type) {
+  el.innerHTML = `<div class="msg ${type}">${msg}</div>`;
+}
+
+function escHtml(s) {
+  return s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
